@@ -1,36 +1,126 @@
-# This is a basic workflow to help you get started with Actions
+from bitcoin import *
+pip install bitcoin
+#Generate private key
+my_private_key = random_key()
+#display private key
+print("Private Key: %sn" % my_private_key)
+#Generate public key
+my_public_key = privtopub(my_private_key)
+print("Public Key: %sn" % my_public_key)
+#Create a bitcoin address
+my_bitcoin_address = pubtoaddr(my_public_key)
+print("Bitcoin Address: %sn" % my_bitcoin_address)
+Output :
 
-name: CI
+Private Key: 82bd4291ebaa6508001600da1fea067f4b63998ed85d996aed41df944c3762be
+Public Key: 04f85fa7c009dba8d1e6b7229949116f03cb3de0dfaf4d6ef3e6320a278dfc8dd91baf058fcafe0b5fbf94d09d79412c629d19cc9debceb1676d3c6c794630943d
+Bitcoin Address: 1FtaFRNgxVqq4s4szhC74EZkJyShmeH5AU
+Now we move onto the computational part where we are going to use SHA256 encryption to find the correct hash. We import the library and then do a test run of what SHA256 actually means.
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+from hashlib import sha256
+sha256("ABC".encode("ascii")).hexdigest()
+Output :
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+b5d4045c3f466fa91fe2cc6abe79232a1a57cdf104f7a26e716e0a1e2789df78
+When you execute the same code, you will get the same hash code for a particular string and hence it always gives a definite output for a definite input. The length of the hash is 64 and each digit is hexadecimal, which makes it equal to 4 bits and hence the whole number is actually 256 bits and that is why it is also known as SHA256.
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+Bitcoin follows a protocol that the first ‘n’ number of digits of the has must be zero. Currently the value of ‘n’ stands at 20 but I am gonna show it to you using smaller ‘n’ so that the code actually finishes execution in linear time. The text over which you would apply SHA256 is made up of the Block number, transition details, previous hash value, and since all the 3 previous values are constant for a block and cannot be changed, a new value called ‘Nonce’ is introduced. Our goal is to find the Nonce value so that the hash of the block produces the required number of zeros in the beginning according to the protocol.
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+mine bitcoin
+We will begin coding by taking a dummy transaction along with the latest block number and the previous hash value. We will begin with 4 zeros in the beginning and work our way up and you will realize why bitcoin mining is a tough job. We begin by defining a SHA256 and a mine Function which we would call.
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+def SHA256(text):
+  return sha256(text.encode("ascii")).hexdigest()
+MAX_NONCE=10000000        # You can also use a while loop to run infinitely with no upper limit
+def mine(block_number,transaction,previous_hash,prefix_zeros):
+  prefix_str='0'*prefix_zeros
+  for nonce in range(MAX_NONCE):
+    text= str(block_number) + transaction + previous_hash + str(nonce)
+    hash = SHA256(text)
+    # print(hash)
+    if hash.startswith(prefix_str):
+      print("Bitcoin mined with nonce value :",nonce)
+      return hash
+  print("Could not find a hash in the given range of upto", MAX_NONCE)
+Then we provide the required details and start mining with 4 zeros at the beginning of the hash.
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+transactions='''
+A->B->10
+B->c->5
+'''
+difficulty = 4
+import time as t
+begin=t.time()
+new_hash = mine(684260,transactions,"000000000000000000006bd3d6ef94d8a01de84e171d3553534783b128f06aad",difficulty)
+print("Hash value : ",new_hash)
+time_taken=t.time()- begin
+print("The mining process took ",time_taken,"seconds")
+Output :
+
+Bitcoin mined with nonce value: 36674
+Hash value :  000086ae35230f32b08e9da254bd7ba1b351f11d40bde27a7ebd5e7ec9568f8d
+The mining process took  0.08681821823120117 seconds
+If we change the difficulty value by even 1, hence it will be 5, the output will be.
+
+Output :
+
+Bitcoin mined with nonce value : 2387325
+Hash value :  00000f5254db00fa0dde976d53bb39c11f9350292949493943a90610d62c1a5e
+The mining process took  4.895745515823364 seconds
+Hence you can see the drastic change in the time taken by the same code when the difficulty is increased from 4 to 5 and it only keeps on increasing exponentially. Thus that is the main reason why mining one bitcoin takes so much energy and computational power. If that was not enough, you have to be the first one to find the hash or you will not be rewarded. So you are also competing with all the other miners out there and this whole system works on the ‘PoW’ or ‘Proof of Work concept’.
+
+Endnotes
+We will discuss more how to connect the mining results to a wallet and how to mine other coins of the same or different concepts in the next part and if you want a sneak peek, you can check out this google collab notebook. If you like my article and want to read more, you can find all my articles listed here. Feel free to reach out to me on LinkedIn for any queries or doubts.
+
+Thank you for reading till the end and Stay safe everyone <3.
+
+The media shown in this article are not owned by Analytics Vidhya and is used at the Author’s discretion. 
+
+Related
+bitcoin price prediction
+Bitcoin Price Prediction Using Recurrent Neural Networks and LSTM
+bitcoin price prediction
+Dogecoin- Analyze Meme Cryptocurrency Data Using Python
+regime shift model
+Analysing the Cryptocurrency of May 2021 | Python for Finance basics
+Bitcoin MiningblogathonMine Bitcoin
+About the Author
+
+Arnab1408
+Our Top Authors
+Analytics Vidhya
+Analytics Vidhya
+Analytics Vidhya
+Analytics Vidhya
+Analytics Vidhya
+Analytics Vidhya
+Analytics Vidhya
+Download
+Analytics Vidhya App for the Latest blog/Article
+play store App Store
+Next Post
+Complete Guide to Expectation-Maximization Algorithm
+Leave a Reply
+Your email address will not be published. Required fields are marked *
+Comment
+Name*
+Email*
+Website
+Top Resources
+
+Performance Comparision of Regularized and Unregularized Regression Models
+
+rahul105 - AUG 03, 2021
+
+Python Tutorial: Working with CSV file for Data Science
+
+harikabonthu96 - AUG 21, 2021
+
+Commonly used Machine Learning Algorithms (with Python and R Codes)
+
+Sunil Ray - SEP 09, 2017
+
+Basic Concepts of Object-Oriented Programming in Python
+
+Himanshi Singh - SEP 01, 2020
+© Copyright 2013-2021 Analytics Vidhya.
